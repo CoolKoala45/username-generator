@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Random Username Generator</title>
+  <style>
+    :root {
+      --bg-color: #f4f6f9;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --toast-bg: #10b981;
+      --border: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    /* Main Card */
+    .container {
+      background: var(--card-bg);
+      padding: 40px 32px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      border: 1px solid var(--border);
+      width: 100%;
+      max-width: 440px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 28px;
+    }
+
+    /* Username Display Box */
+    .result-box {
+      background: #f8fafc;
+      border: 2px dashed #cbd5e1;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: var(--text-main);
+      min-height: 74px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      word-break: break-all;
+      transition: border-color 0.2s ease;
+    }
+
+    .result-box.active {
+      border-style: solid;
+      border-color: var(--primary);
+      background: #eff6ff;
+    }
+
+    .placeholder {
+      color: #94a3b8;
+      font-size: 1.1rem;
+      font-weight: 500;
+    }
+
+    /* Generate Button */
+    button {
+      width: 100%;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 14px 24px;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.2s ease, transform 0.1s ease;
+    }
+
+    button:hover {
+      background-color: var(--primary-hover);
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    /* Slide-in Toast Notification */
+    .toast {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      background-color: var(--toast-bg);
+      color: white;
+      padding: 14px 22px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      box-shadow: 0 8px 20px rgba(16, 185, 129, 0.25);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      
+      /* Hidden & Off-screen by default */
+      transform: translateX(150%);
+      opacity: 0;
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease;
+      z-index: 1000;
+    }
+
+    .toast.show {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Slide-in Notification -->
+  <div id="toast" class="toast">
+    <span>✓</span> Generated and Copied
+  </div>
+
+  <!-- Main UI Card -->
+  <div class="container">
+    <h1>Username Generator</h1>
+    <p class="subtitle">Click below to generate and copy a random handle</p>
+
+    <div id="resultBox" class="result-box">
+      <span class="placeholder">yourname99</span>
+    </div>
+
+    <button id="generateBtn">Generate Random</button>
+  </div>
+
+  <script>
+    // Add as many words as you want to these two arrays
+    const FIRST_WORDS = [
+      "tricky", "sharp", "cool", "swift", "brave", "clever", "silent", "bold",
+      "mighty", "wild", "calm", "fierce", "gentle", "happy", "jolly", "keen",
+      "lively", "merry", "noble", "proud", "quick", "smart", "witty", "zesty",
+      "bright", "cosmic", "daring", "eager", "fancy", "grand", "hyper", "icy",
+      "jazzy", "lucky", "magic", "neon", "omega", "prime", "royal", "solar",
+      "turbo", "ultra", "vivid", "wise", "young", "zealous", "agile", "breezy",
+      "crisp", "dizzy", "epic", "frosty", "golden", "hidden", "iron", "jade",
+      "kind", "lunar", "misty", "nimble", "odd", "peppy", "quiet", "rapid",
+      "sly", "tough", "urban", "velvet", "warm", "xeno", "yellow", "zen",
+      "ancient", "blazing", "chilly", "digital", "electric", "flying", "giant",
+      "honest", "infinite", "jumping", "knightly", "loopy", "mystic", "noisy",
+      "orbital", "phantom", "quantum", "rebel", "shadow", "thunder", "velvety",
+      "wandering", "zany", "atomic", "bronze", "crimson", "emerald", "silver"
+    ];
+
+    const SECOND_WORDS = [
+      "possum", "bear", "cards", "fox", "wolf", "tiger", "eagle", "hawk",
+      "shark", "whale", "panda", "koala", "otter", "badger", "falcon", "raven",
+      "owl", "viper", "cobra", "dragon", "phoenix", "griffin", "knight", "ninja",
+      "pirate", "wizard", "ranger", "scout", "pilot", "captain", "sailor", "viking",
+      "comet", "star", "moon", "planet", "nebula", "galaxy", "orbit", "meteor",
+      "bolt", "spark", "flame", "frost", "storm", "cloud", "river", "ocean",
+      "mountain", "forest", "canyon", "desert", "island", "glacier", "volcano",
+      "hammer", "shield", "sword", "arrow", "dagger", "lance", "crown", "ring",
+      "gem", "coin", "dice", "chess", "pixel", "glitch", "byte", "cipher",
+      "beacon", "radar", "rocket", "rover", "drone", "mech", "bot", "core",
+      "cactus", "acorn", "maple", "cedar", "bamboo", "clover", "fern", "moss",
+      "pebble", "boulder", "crystal", "quartz", "onyx", "topaz", "ruby", "pearl",
+      "biscuit", "waffle", "noodle", "pickle", "muffin", "taco", "pretzel", "bagel"
+    ];
+
+    const generateBtn = document.getElementById("generateBtn");
+    const resultBox = document.getElementById("resultBox");
+    const toast = document.getElementById("toast");
+    let toastTimeout;
+
+    function getRandomItem(array) {
+      return array[Math.floor(Math.random() * array.length)];
+    }
+
+    function generateUsername() {
+      const word1 = getRandomItem(FIRST_WORDS);
+      const word2 = getRandomItem(SECOND_WORDS);
+      const number = Math.floor(Math.random() * 90) + 10; // Random 2-digit number (10-99)
+      return `${word1}${word2}${number}`;
+    }
+
+    function showToast() {
+      clearTimeout(toastTimeout);
+      toast.classList.add("show");
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove("show");
+      }, 2500);
+    }
+
+    generateBtn.addEventListener("click", async () => {
+      const username = generateUsername();
+
+      // Display the username
+      resultBox.textContent = username;
+      resultBox.classList.add("active");
+
+      // Copy to clipboard
+      try {
+        await navigator.clipboard.writeText(username);
+        showToast();
+      } catch (err) {
+        // Fallback for older browsers or non-HTTPS local testing
+        const textArea = document.createElement("textarea");
+        textArea.value = username;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+        showToast();
+      }
+    });
+  </script>
+</body>
+</html>
